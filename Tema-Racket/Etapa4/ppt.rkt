@@ -63,8 +63,10 @@
 ; Folosiți cel puțin o formă de let.
 
 (define (ppt-function Q)
-    (let*[(node (car Q)) (L (append (multiply T1 node) (multiply T2 node) (multiply T3 node)))]
-      (stream-append (car Q) (ppt-function (append (list (cdr Q)) (reverse L))))))
+  (stream-append (car Q) (let*[(node (car Q)) (L (append (list (multiply T1 node)) (list (multiply T2 node)) (list (multiply T3 node))))]
+                           (ppt-function (if (null? (cdr Q))
+                                               L
+                                               (append (cdr Q) L))))))
 
 (define ppt-stream-in-tree-order
   (ppt-function '((3 4 5))))
