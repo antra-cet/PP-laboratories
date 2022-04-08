@@ -63,13 +63,13 @@
 ; Folosiți cel puțin o formă de let.
 
 (define (ppt-function Q)
-  (stream-append (car Q) (let*[(node (car Q)) (L (append (list (multiply T1 node)) (list (multiply T2 node)) (list (multiply T3 node))))]
-                           (ppt-function (if (null? (cdr Q))
+  (stream-cons (stream-first Q) (let*[(node (stream-first Q)) (L (stream-append (list (multiply T1 node) (multiply T2 node) (multiply T3 node))))]
+                           (ppt-function (if (stream-empty? (stream-rest Q))
                                                L
-                                               (append (cdr Q) L))))))
+                                               (stream-append (stream-rest Q) L))))))
 
 (define ppt-stream-in-tree-order
-  (ppt-function '((3 4 5))))
+  (ppt-function (stream-cons '(3 4 5) empty-stream)))
 
 
 ;; Un alt mod de a genera TPP se folosește de perechi (g, h)
@@ -144,8 +144,13 @@
 ;  - eliminarea perechilor de numere neprime între ele (care 
 ;    există în rezultatul funcției pairs, dar nu vor mai exista
 ;    în fluxul gh-pairs-stream)
+(define (generate-pairs i j G H G1 H1 i1 j1)
+  (if (>= i j)
+      (generate-pairs i1 (+ j1 1) G1 (stream-rest H1) G1 (stream-rest H1) i1 (+ j1 1))
+      (stream-cons (cons (stream-first G) (stream-first H)) (generate-pairs (+ i 1) j (stream-rest G) H G1 H1 i1 j1))))
+
 (define (pairs G H)
-  'your-code-here)
+  (generate-pairs 0 1 G H G H 0 1))
 
 
 ; TODO
@@ -153,14 +158,34 @@
 ; indexare a TPP.
 ; Nu folosiți recursivitate explicită (decât pentru a genera
 ; fluxurile de pornire - G și H).
+(define (odd-numbers-gen i)
+  (stream-cons i (odd-numbers-gen (+ 2 i))))
+
+(define (generate-pairs-1 i j G H G1 H1 i1 j1)
+  (if (>= i j)
+      (generate-pairs-1 i1 (+ j1 1) G1 (stream-rest H1) G1 (stream-rest H1) i1 (+ j1 1))
+      (if (= (gcd (stream-first G) (stream-first H)) 1)
+          (stream-cons (cons (stream-first G) (stream-first H)) (generate-pairs-1 (+ i 1) j (stream-rest G) H G1 H1 i1 j1))
+          (generate-pairs-1 (+ i 1) j (stream-rest G) H G1 H1 i1 j1))))
+
+
 (define gh-pairs-stream
-  'your-code-here)
+  (generate-pairs-1 0 1 (odd-numbers-gen 1) (odd-numbers-gen 3) (odd-numbers-gen 1) (odd-numbers-gen 3) 0 1))
 
 
 ; TODO
 ; Definiți fluxul de TPP corespunzător fluxului anterior de
 ; perechi (g, h).
+(define (generate-pairs-2 i j G H G1 H1 i1 j1)
+  (let [(g (stream-first G)) (h (stream-first H))]
+    (if (>= i j)
+        (generate-pairs-2 i1 (+ j1 1) G1 (stream-rest H1) G1 (stream-rest H1) i1 (+ j1 1))
+        (if (= (gcd g h) 1)
+            (stream-cons (append (list (* g h) (quotient (- (* h h) (* g g)) 2) (quotient (+ (* h h) (* g g)) 2))) (generate-pairs-2 (+ i 1) j (stream-rest G) H G1 H1 i1 j1))
+            (generate-pairs-2 (+ i 1) j (stream-rest G) H G1 H1 i1 j1)))))
+
+
 (define ppt-stream-in-pair-order
-  'your-code-here)
+  (generate-pairs-2 0 1 (odd-numbers-gen 1) (odd-numbers-gen 3) (odd-numbers-gen 1) (odd-numbers-gen 3) 0 1))
 
 
